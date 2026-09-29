@@ -127,12 +127,9 @@ struct ImportPanel: View {
                         // sheet goes so that the bar is seen where it appears.
                         if marksLanded, !browser.prefs.bookmarksBar {
                             Pill("Show the bookmarks bar") {
-                                browser.prefs.bookmarksBar = true
+                                withAnimation(Motion.glide) { browser.prefs.bookmarksBar = true }
                                 browser.bringingIn = nil
                             }
-                            // Its own width, so the row gives up its spare
-                            // room before this folds onto a second line.
-                            .fixedSize(horizontal: true, vertical: false)
                         }
                         Pill("Show passwords") {
                             browser.bringingIn = nil
@@ -145,7 +142,7 @@ struct ImportPanel: View {
                         if bringing { Ring(size: 10) }
                     }
                     Spacer(minLength: 8)
-                    Pill("Or from a file another browser exported…") { browser.importFile() }
+                    Pill("File…") { browser.importFile() }
                         .disabled(bringing)
                 }
             }
@@ -369,6 +366,8 @@ struct ImportPanel: View {
     // MARK: - bringing
 
     private func bring(from source: ImportSource) {
+        // This import's own answer, not the one before it in the same sheet.
+        marksLanded = false
         let profile = profile(of: source)
         let extensions = wantsExtensions ? fresh(source) : []
         // A kind it has none of isn't read at all: no keychain question for
