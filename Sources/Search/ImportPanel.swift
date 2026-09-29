@@ -41,6 +41,9 @@ struct ImportPanel: View {
     @State private var forExtensions = false
     @State private var bringing = false
     @State private var brought: [Said]?
+    /// Whether that import left any bookmarks behind, which is what the
+    /// offer to show the bar is for.
+    @State private var marksLanded = false
 
     struct Said: Hashable {
         let ok: Bool
@@ -117,6 +120,19 @@ struct ImportPanel: View {
                         Pill("Show bookmarks") {
                             browser.bringingIn = nil
                             browser.bookmarking = true
+                        }
+                        // The bar is off until it is asked for, and nobody asks
+                        // for a row that has nothing in it. Bookmarks having just
+                        // arrived is the one moment it is worth offering, and the
+                        // sheet goes so that the bar is seen where it appears.
+                        if marksLanded, !browser.prefs.bookmarksBar {
+                            Pill("Show the bookmarks bar") {
+                                browser.prefs.bookmarksBar = true
+                                browser.bringingIn = nil
+                            }
+                            // Its own width, so the row gives up its spare
+                            // room before this folds onto a second line.
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                         Pill("Show passwords") {
                             browser.bringingIn = nil
@@ -389,6 +405,7 @@ struct ImportPanel: View {
         }
         if marks {
             let (added, already, kept) = browser.takeBookmarks(from: source, profile: profile, replacing: replaceBookmarks)
+            marksLanded = added + already > 0
             said[1] = kept
                 ? Said(ok: false, text: "Couldn't read all of \(source.name)'s bookmarks: what came from it before was kept, \(added.formatted()) new")
                 : Said(ok: true, text: added == 0 && already == 0 ? "No bookmarks in \(source.name)"
