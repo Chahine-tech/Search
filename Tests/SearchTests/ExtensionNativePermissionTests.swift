@@ -45,7 +45,11 @@ final class ExtensionNativePermissionTests: XCTestCase {
 
     /// The one that was refused: an extension whose manifest names
     /// nativeMessaging among its optional permissions rather than among
-    /// those it must have.
+    /// those it must have, as Bitwarden's does, which left its unlock with
+    /// Touch ID unable to reach its host (#741). prepare then writes the
+    /// permission into the required ones for the shim's own line and notes
+    /// that it did, truthfully, so neither of WebKit's lists speaks for the
+    /// extension and only the manifest can.
     func testOptionalNativeMessagingIsAskedFor() async throws {
         let (_, folder, context) = try await installed(permissions: ["storage"], optional: ["nativeMessaging"])
         defer { forget(folder) }
